@@ -299,6 +299,7 @@ function install_packages()
   pop_version=( "22.04" )
   alma_version=( "9.1" )
   fedora_version=( "36" "37" )
+  debian_version=( "13" )
   local re="\\b$VERSION_ID\\b"
 
   testVersions() {
@@ -318,6 +319,7 @@ function install_packages()
       "Ubuntu") arr=ubuntu ;;
       "Linux Mint") arr=mint ;;
       "Pop!_OS") arr=pop ;;
+      "Debian GNU/Linux") arr=debian ;;
     esac
     testVersions "$arr"
     apt install "${debian_depends[@]}" 2>&1 | tee -a "$log_file"
