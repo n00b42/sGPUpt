@@ -42,7 +42,7 @@ virtIO_url="https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/sta
 winiso_url="https://archive.org/download/tiny11-2311/tiny11%202311%20x64.iso"
 
 # Logs
-[[ ! -e "/etc/sGPUpt/" ]] && mkdir -p "/etc/sGPUpt/"
+[[ ! -e "/etc/sGPUpt/" ]] && mkdir -p "/etc/sGPUpt/" > /dev/null
 log_file="/etc/sGPUpt/sGPUpt.log"
 log_hook="/etc/sGPUpt/sGPUpt-hooks.log"
 > $log_file
