@@ -30,15 +30,16 @@ iso_path="/etc/sGPUpt/iso"
 #iso_path=/home/$SUDO_USER/Documents/iso
 
 # Compile
-qemu_branch="v8.0.0"
+qemu_branch="v8.2.1"
 qemu_dir="/etc/sGPUpt/qemu-emulator"
-edk2_branch="edk2-stable202211"
+edk2_branch="edk2-stable202402"
 edk2_dir="/etc/sGPUpt/edk-compile"
 
 # Urls
 qemu_git="https://github.com/qemu/qemu.git"
 edk2_git="https://github.com/tianocore/edk2.git"
 virtIO_url="https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso"
+winiso_url="https://archive.org/download/tiny11-2311/tiny11%202311%20x64.iso"
 
 # Logs
 [[ ! -e "/etc/sGPUpt/" ]] && mkdir -p "/etc/sGPUpt/"
@@ -288,10 +289,10 @@ function find_pcie_devices()
 function install_packages()
 {
   source /etc/os-release
-  arch_depends=(   "qemu-base" "virt-manager" "virt-viewer" "dnsmasq" "vde2" "bridge-utils" "openbsd-netcat" "libguestfs" "swtpm" "git" "make" "ninja" "nasm" "iasl" "pkg-config" "spice-protocol" "dmidecode" "gcc" "flex" "bison" )
+  arch_depends=(   "qemu-base" "virt-manager" "virt-viewer" "dnsmasq" "vde2" "bridge-utils" "openbsd-netcat" "libguestfs" "swtpm" "git" "make" "ninja" "nasm" "iasl" "pkg-config" "spice-protocol" "dmidecode" "gcc" "flex" "bison" "spice" "xkeyboard-config" )
   fedora_depends=( "qemu-kvm" "virt-manager" "virt-viewer" "virt-install" "libvirt-daemon-config-network" "libvirt-daemon-kvm" "swtpm" "g++" "ninja-build" "nasm" "iasl" "libuuid-devel" "glib2-devel" "pixman-devel" "spice-protocol" "spice-server-devel" )
   alma_depends=(   "qemu-kvm" "virt-manager" "virt-viewer" "virt-install" "libvirt-daemon-config-network" "libvirt-daemon-kvm" "swtpm" "git" "make" "gcc" "g++" "ninja-build" "nasm" "iasl" "libuuid-devel" "glib2-devel" "pixman-devel" "spice-protocol" "spice-server-devel" )
-  debian_depends=( "qemu-kvm" "virt-manager" "virt-viewer" "libvirt-daemon-system" "libvirt-clients" "bridge-utils" "swtpm" "mesa-utils" "git" "ninja-build" "nasm" "iasl" "pkg-config" "libglib2.0-dev" "libpixman-1-dev" "meson" "build-essential" "uuid-dev" "python-is-python3" "libspice-protocol-dev" "libspice-server-dev" "flex" "bison" )
+  debian_depends=( "qemu-kvm" "virt-manager" "virt-viewer" "libvirt-daemon-system" "libvirt-clients" "bridge-utils" "swtpm" "mesa-utils" "git" "ninja-build" "nasm" "iasl" "pkg-config" "libglib2.0-dev" "libpixman-1-dev" "meson" "build-essential" "uuid-dev" "python-is-python3" "libspice-protocol-dev" "libspice-server-dev" "flex" "bison" "libusb-1.0-0-dev" )
 
   ubuntu_version=( "22.04" "22.10" )
   mint_version=( "21.1" )
@@ -339,6 +340,10 @@ function install_packages()
   if [[ ! -e "$iso_path/virtio-win.iso" ]]; then
     logger info "Downloading VirtIO Drivers ISO..."
     wget -P $iso_path "$virtIO_url" 2>&1 | tee -a "$log_file"
+  fi
+  if [[ ! -e "$iso_path/win-tiny11.iso" ]]; then
+    logger info "Downloading Win Tiny11 ISO..."
+    wget -P $iso_path -O win-tiny11.iso "$winiso_url" 2>&1 | tee -a "$log_file"
   fi
 }
 
@@ -591,7 +596,7 @@ function create_vm()
   --name "$vm_name" \
   --memory "$vm_memory" \
   --vcpus "$vm_cpus" \
-  --osinfo win10 \
+  --osinfo win11 \
   --cpu host,topology.dies=1,topology.sockets=1,topology.cores=${vm_cores},topology.threads=${vm_threads},check=none \
   --clock rtc_present=no,pit_present=no,hpet_present=no,kvmclock_present=no,hypervclock_present=yes,timer5.name=tsc,timer5.present=yes,timer5.mode=native \
   --boot loader.readonly=yes,loader.type=pflash,loader="${OVMF_CODE}" \
@@ -599,7 +604,7 @@ function create_vm()
   --boot emulator="${qemu_emulator}" \
   --boot cdrom,hd,menu=on \
   --feature vmport.state=off \
-  --disk device=cdrom,path="" \
+  --disk device=cdrom,path="${iso_path}/win-tiny11.iso" \
   --disk device=cdrom,path="${iso_path}/virtio-win.iso" \
   --import \
   --network type=network,source="${network_name}",model=virtio \
