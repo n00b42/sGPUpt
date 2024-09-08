@@ -161,11 +161,19 @@ function query_system()
   vm_cpus=$(($(nproc) - $subtract_int))
   vm_cores=$(($vm_cpus / vm_threads))
 
-  # Stop the script if we have more than one GPU in the system.
-  [[ $(lspci | grep -c "VGA") -gt 1 ]] && logger error "There are too many GPUs in the system!"
+##  # Stop the script if we have more than one GPU in the system.
+##  [[ $(lspci | grep -c "VGA") -gt 1 ]] && logger error "There are too many GPUs in the system!"
+  if [[ $(lspci | grep -c "VGA") -gt 1 ]]; then
+    logger info "There are too many GPUs in the system, please choose a gpu";
+    echo "$(lspci | grep "VGA" | grep -E "NVIDIA|AMD/ATI|Arc" | rev | cut -d"[" -f1 | cut -d"]" -f2 | rev)";
+    read -p 'GPU: ' gpu;
+    gpu_name=$(lspci | grep "VGA" | grep -E "NVIDIA|AMD/ATI|Arc" | rev | cut -d"[" -f1 | cut -d"]" -f2 | rev | grep "$gpu");
+  else
+    gpu_name=$(lspci | grep "VGA" | grep -E "NVIDIA|AMD/ATI|Arc" | rev | cut -d"[" -f1 | cut -d"]" -f2 | rev);
+  fi
 
   # Get basic GPU information.
-  gpu_name=$(lspci | grep "VGA" | grep -E "NVIDIA|AMD/ATI|Arc" | rev | cut -d"[" -f1 | cut -d"]" -f2 | rev)
+##  gpu_name=$(lspci | grep "VGA" | grep -E "NVIDIA|AMD/ATI|Arc" | rev | cut -d"[" -f1 | cut -d"]" -f2 | rev)
   gpu_components=$(lspci | grep -E "NVIDIA|AMD/ATI|Arc" | grep -E -c "VGA|Audio|USB|Serial")
   case $gpu_name in
     *GeForce*|*NVIDIA*) gpu_brand="NVIDIA" ;;
